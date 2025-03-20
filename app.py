@@ -448,7 +448,7 @@ def get_droptimizer_settings(difficulties):
     default_settings = {
         "fight_duration": 5,
         "fight_style": "Patchwerk",
-        "match_equipped_gear": True,
+        "match_equipped_gear": False,
         "number_of_bosses": 1,
         "pi": False,
         "sockets": False,
