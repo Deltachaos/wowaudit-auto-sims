@@ -75,6 +75,17 @@ The stroked settings are currently not implemented, but planned.
 - ~~`DROPTIMIZER_X_NUMBER_OF_BOSSES`: Number of bosses in the encounter. Default: `1`.~~
 - ~~`DROPTIMIZER_X_PI`: Whether Power Infusion (PI) is considered. Default: `False`.~~
 - ~~`DROPTIMIZER_X_SOCKETS`: Whether to prioritize socketed items. Default: `False`.~~
+
+## Upgrade Levels
+
+The Upgrade Levels can be set to:
+
+- `-1`: Always select the maximum
+- `0`: Base level, no upgrades
+- `1`, `2`, `3`, ...: The upgrade level, like Champion 1/8
+
+Settings:
+
 - `DROPTIMIZER_X_UPGRADE_LEVEL_HEROIC`: Heroic upgrade level. Default: `0`.
 - `DROPTIMIZER_X_UPGRADE_LEVEL_NORMAL`: Normal upgrade level. Default: `0`.
 - `DROPTIMIZER_X_UPGRADE_LEVEL_MYTHIC`: Mythic upgrade level. Default: `0`.
