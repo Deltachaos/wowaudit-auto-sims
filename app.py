@@ -174,7 +174,7 @@ def start_sim_with_browser(region, realm, char_name, raid, difficulty, sim, is_l
         box = label.find_element(By.XPATH, "./..")
         for listbox in box.find_elements(By.CSS_SELECTOR, "[id$='listbox']"):
             for option in listbox.find_elements(By.CSS_SELECTOR, "[id*='option']"):
-                option_text = clear(option.text)
+                option_text = option.text
                 print(f"Found option {option_text}")
                 match = re.search(r'(\d+)/\d+', option_text)
                 level = 0
