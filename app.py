@@ -549,11 +549,8 @@ async def main():
         print("No latest raid found.")
         return
 
-    return
-
     # Create a task for each character.
-    #tasks = [asyncio.create_task(process_raidbots_character(region, character, latest_raid, raids, sims, latest_updates)) for character in characters if character["role"] != "Heal"]
-    tasks = [asyncio.create_task(process_raidbots_character(region, characters[0], latest_raid, raids, sims, latest_updates))]
+    tasks = [asyncio.create_task(process_raidbots_character(region, character, latest_raid, raids, sims, latest_updates)) for character in characters if character["role"] != "Heal"]
     await asyncio.gather(*tasks)
 
 if __name__ == "__main__":

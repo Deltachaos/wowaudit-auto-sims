@@ -67,12 +67,14 @@ To use this script, you need to obtain a WoW Audit API token:
 ### Droptimizer Simulation Settings
 The script also supports the following environment variables, prefixed with `DROPTIMIZER_`, to configure Droptimizer simulations. These settings are indexed (e.g., `DROPTIMIZER_0_FIGHT_DURATION`, `DROPTIMIZER_1_FIGHT_DURATION`, etc.).
 
-- `DROPTIMIZER_X_FIGHT_DURATION`: Fight duration in minutes. Default: `5`.
-- `DROPTIMIZER_X_FIGHT_STYLE`: The fight style to simulate (e.g., `Patchwerk`). Default: `Patchwerk`.
+The stroked settings are currently not implemented, but planned.
+
+- ~~`DROPTIMIZER_X_FIGHT_DURATION`: Fight duration in minutes. Default: `5`.~~
+- ~~`DROPTIMIZER_X_FIGHT_STYLE`: The fight style to simulate (e.g., `Patchwerk`). Default: `Patchwerk`.~~
 - `DROPTIMIZER_X_MATCH_EQUIPPED_GEAR`: Whether to match currently equipped gear. Default: `True`.
-- `DROPTIMIZER_X_NUMBER_OF_BOSSES`: Number of bosses in the encounter. Default: `1`.
-- `DROPTIMIZER_X_PI`: Whether Power Infusion (PI) is considered. Default: `False`.
-- `DROPTIMIZER_X_SOCKETS`: Whether to prioritize socketed items. Default: `False`.
+- ~~`DROPTIMIZER_X_NUMBER_OF_BOSSES`: Number of bosses in the encounter. Default: `1`.~~
+- ~~`DROPTIMIZER_X_PI`: Whether Power Infusion (PI) is considered. Default: `False`.~~
+- ~~`DROPTIMIZER_X_SOCKETS`: Whether to prioritize socketed items. Default: `False`.~~
 - `DROPTIMIZER_X_UPGRADE_LEVEL_HEROIC`: Heroic upgrade level. Default: `0`.
 - `DROPTIMIZER_X_UPGRADE_LEVEL_NORMAL`: Normal upgrade level. Default: `0`.
 - `DROPTIMIZER_X_UPGRADE_LEVEL_MYTHIC`: Mythic upgrade level. Default: `0`.
