@@ -169,33 +169,33 @@ def start_sim_with_browser(region, realm, char_name, raid, difficulty, sim, is_l
         """
         driver.execute_script(script, label)
 
-        latest_option = None
-        options = []
+        highest_level = 0
+        options = {}
         box = label.find_element(By.XPATH, "./..")
         for listbox in box.find_elements(By.CSS_SELECTOR, "[id$='listbox']"):
             for option in listbox.find_elements(By.CSS_SELECTOR, "[id*='option']"):
-                options.append(option)
-                latest_option = option
+                option_text = clear(option.text)
+                print(f"Found option {option_text}")
+                match = re.search(r'(\d+)/\d+', option_text)
+                level = 0
+                if match:
+                    level = match.group(1)
+                if level > highest_level:
+                    highest_level = level
+                options[level] = option
 
         if not options:
             print("no options found")
             return False
 
-        if not latest_option:
-            print("no latest_option found")
-            return False
-        
         if value == -1:
-            print(f"Found latest option {latest_option.text}")
-            return click(latest_option)
+            print(f"Found highest upgrade: {highest_level}")
+            return click(options[highest_level])
 
-        for option in options:
-            print(f"Found option {option.text}")
-            match = re.search(r'(\d+)/\d+', clear(option.text))
-            if match and match.group(1) == value:
-                return click(option)
-
-        return False
+        if not value in options:
+            print(f"No option found for upgrade: {value}")
+        
+        return click(options[highest_level])
 
     def select_raid(raid_name):
         """Selects the specified raid from the list."""
