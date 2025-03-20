@@ -27,6 +27,7 @@ def parse_bool(value):
 
 WOWAUDIT_API_TOKEN = os.getenv("WOWAUDIT_API_TOKEN", None)
 POLL_INTERVAL = int(os.getenv("POLL_INTERVAL", 30))
+DISABLE_LEGACY_RAIDS = parse_bool(os.getenv("DISABLE_LEGACY_RAIDS", 1))
 UPDATE_INTERVAL_HOURS = timedelta(hours=get_interval("UPDATE_INTERVAL_HOURS", 24))
 USER_AGENT = os.getenv(
     "USER_AGENT",
@@ -393,6 +394,10 @@ async def process_raidbots_character(region, character, latest, raids, sim_map, 
     for raid in raids:
         raid_name = raid["name"]
         is_latest = latest["id"] == raid["id"]
+        if DISABLE_LEGACY_RAIDS and not is_latest:
+            print(f"Skip {raid_name} {difficulty} because legacy raids are skipped")
+            continue
+        
         for difficulty, sims in sim_map.items():
             if character["id"] in latest_updates and raid["id"] in latest_updates[character["id"]] and difficulty in latest_updates[character["id"]][raid["id"]] and is_already_updated(latest_updates[character["id"]][raid["id"]][difficulty]):
                 print(f"Skip {raid_name} {difficulty} because its updated already")
