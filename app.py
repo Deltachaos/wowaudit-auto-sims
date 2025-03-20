@@ -23,6 +23,7 @@ def get_interval(name, default=24):
     return int(env_value)
 
 def parse_bool(value):
+    value = str(value)
     return value.lower() in ("true", "1", "yes")
 
 WOWAUDIT_API_TOKEN = os.getenv("WOWAUDIT_API_TOKEN", None)
