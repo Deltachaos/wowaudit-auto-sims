@@ -396,7 +396,7 @@ async def process_raidbots_character(region, character, latest, raids, sim_map, 
         raid_name = raid["name"]
         is_latest = latest["id"] == raid["id"]
         if DISABLE_LEGACY_RAIDS and not is_latest:
-            print(f"Skip {raid_name} {difficulty} because legacy raids are skipped")
+            print(f"Skip {raid_name} because legacy raids are skipped")
             continue
         
         for difficulty, sims in sim_map.items():
