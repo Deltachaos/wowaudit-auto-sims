@@ -394,7 +394,7 @@ async def process_raidbots_character(region, character, latest, raids, sim_map, 
         raid_name = raid["name"]
         is_latest = latest["id"] == raid["id"]
         for difficulty, sims in sim_map.items():
-            if is_already_updated(latest_updates[character["id"]][raid["id"]][difficulty]):
+            if character["id"] in latest_updates and raid["id"] in latest_updates[character["id"]] and difficulty in latest_updates[character["id"]][raid["id"]] and is_already_updated(latest_updates[character["id"]][raid["id"]][difficulty]):
                 print(f"Skip {raid_name} {difficulty} because its updated already")
                 continue
 
