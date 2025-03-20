@@ -169,17 +169,25 @@ def start_sim_with_browser(region, realm, char_name, raid, difficulty, sim, is_l
         """
         driver.execute_script(script, label)
 
+        latest_option = None
         options = []
         box = label.find_element(By.XPATH, "./..")
         for listbox in box.find_elements(By.CSS_SELECTOR, "[id$='listbox']"):
             for option in listbox.find_elements(By.CSS_SELECTOR, "[id*='option']"):
                 options.append(option)
+                latest_option = option
 
         if not options:
+            print("no options found")
             return False
 
+        if not latest_option:
+            print("no latest_option found")
+            return False
+        
         if value == -1:
-            return click(options[-1])
+            print(f"Found latest option {latest_option.text}")
+            return click(latest_option)
 
         for option in options:
             print(f"Found option {option.text}")
