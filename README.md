@@ -71,7 +71,7 @@ The stroked settings are currently not implemented, but planned.
 
 - ~~`DROPTIMIZER_X_FIGHT_DURATION`: Fight duration in minutes. Default: `5`.~~
 - ~~`DROPTIMIZER_X_FIGHT_STYLE`: The fight style to simulate (e.g., `Patchwerk`). Default: `Patchwerk`.~~
-- `DROPTIMIZER_X_MATCH_EQUIPPED_GEAR`: Whether to match currently equipped gear. Default: `True`.
+- `DROPTIMIZER_X_MATCH_EQUIPPED_GEAR`: Whether to match currently equipped gear. Default: `False`.
 - ~~`DROPTIMIZER_X_NUMBER_OF_BOSSES`: Number of bosses in the encounter. Default: `1`.~~
 - ~~`DROPTIMIZER_X_PI`: Whether Power Infusion (PI) is considered. Default: `False`.~~
 - ~~`DROPTIMIZER_X_SOCKETS`: Whether to prioritize socketed items. Default: `False`.~~
