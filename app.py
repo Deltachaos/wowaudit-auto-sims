@@ -457,12 +457,13 @@ def get_droptimizer_settings(difficulties):
 
     settings = []
     indexed_settings = {}
-    pattern = re.compile(r"DROPTIMIZER_(\d+)_(\w+)")
+    pattern = re.compile(r"DROPTIMIZER_(\d+)_(.*)")
 
     for key, value in os.environ.items():
         match = pattern.match(key)
         if match:
             index, setting_name = match.groups()
+            setting_name = setting_name.lower()
             index = int(index)
 
             if index not in indexed_settings:
@@ -476,8 +477,10 @@ def get_droptimizer_settings(difficulties):
                     indexed_settings[index][setting_name] = int(value)
                 else:
                     indexed_settings[index][setting_name] = value
-            elif setting_name in indexed_settings[index]["upgrade_level"]:
-                indexed_settings[index]["upgrade_level"][setting_name] = int(value)
+            elif setting_name.startswith("upgrade_level_"):
+                setting_upgrade_level = setting_name.removeprefix("upgrade_level_")
+                if setting_upgrade_level in indexed_settings[index]["upgrade_level"]:
+                    indexed_settings[index]["upgrade_level"][setting_upgrade_level] = int(value)
 
     for index in sorted(indexed_settings.keys()):
         settings.append(indexed_settings[index])
@@ -530,6 +533,8 @@ async def main():
         print("No sims to process.")
         return
 
+    print(sims)
+
     latest_updates = get_latest_updates(wishlists)
 
     print(f"Run for region {region}")
@@ -544,8 +549,11 @@ async def main():
         print("No latest raid found.")
         return
 
+    return
+
     # Create a task for each character.
-    tasks = [asyncio.create_task(process_raidbots_character(region, character, latest_raid, raids, sims, latest_updates)) for character in characters if character["role"] != "Heal"]
+    #tasks = [asyncio.create_task(process_raidbots_character(region, character, latest_raid, raids, sims, latest_updates)) for character in characters if character["role"] != "Heal"]
+    tasks = [asyncio.create_task(process_raidbots_character(region, characters[0], latest_raid, raids, sims, latest_updates))]
     await asyncio.gather(*tasks)
 
 if __name__ == "__main__":
