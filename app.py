@@ -174,12 +174,12 @@ def start_sim_with_browser(region, realm, char_name, raid, difficulty, sim, is_l
         box = label.find_element(By.XPATH, "./..")
         for listbox in box.find_elements(By.CSS_SELECTOR, "[id$='listbox']"):
             for option in listbox.find_elements(By.CSS_SELECTOR, "[id*='option']"):
-                option_text = option.text
+                option_text = ''.join(option.text.splitlines())
                 print(f"Found option {option_text}")
                 match = re.search(r'(\d+)/\d+', option_text)
                 level = 0
                 if match:
-                    level = match.group(1)
+                    level = int(match.group(1))
                 if level > highest_level:
                     highest_level = level
                 options[level] = option
