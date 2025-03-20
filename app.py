@@ -154,6 +154,8 @@ def start_sim_with_browser(region, realm, char_name, raid, difficulty, sim, is_l
         # TODO check if checkbox is set currently
         for label in labels:
             if clear(label.text) == clear(text):
+                if not value:
+                    return True # TODO check if clicked
                 return click(label)
         return False
 
