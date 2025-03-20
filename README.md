@@ -76,7 +76,7 @@ The stroked settings are currently not implemented, but planned.
 - ~~`DROPTIMIZER_X_PI`: Whether Power Infusion (PI) is considered. Default: `False`.~~
 - ~~`DROPTIMIZER_X_SOCKETS`: Whether to prioritize socketed items. Default: `False`.~~
 
-## Upgrade Levels
+#### Upgrade Levels
 
 The Upgrade Levels can be set to:
 
