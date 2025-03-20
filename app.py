@@ -339,7 +339,7 @@ async def upload_wishlist(character, report_id):
         response = await async_http_request("POST", url, headers, data_str)
         print(f"Wishlist uploaded for {character['name']}-{character['realm']}: {response}")
     except Exception as e:
-        print(f"Error uploading wishlist for {character['name']}-{character['realm']}: {e}")
+        print(f"Error uploading wishlist {report_id} for {character['name']}-{character['realm']}: {e}")
 
 async def get_wishlists():
     url = "https://wowaudit.com/v1/wishlists"
