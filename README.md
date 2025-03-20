@@ -40,6 +40,8 @@ To use this script, you need to obtain a WoW Audit API token:
 5. Set the token as an environment variable `WOWAUDIT_API_TOKEN` on your system.
 
 ## Installation
+You can also run the script on [Github Actions](https://github.com/Deltachaos/wowaudit-auto-sims?tab=readme-ov-file#running-the-job-on-github-ci).
+
 1. Clone the repository:
    ```sh
    git clone https://github.com/Deltachaos/wowaudit-auto-sims.git
