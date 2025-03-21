@@ -63,7 +63,7 @@ def http_request(method, url, headers=None, data=None):
                 return json.loads(resp_data)
         except urllib.error.HTTPError as e:
             if 400 <= e.code < 500:
-                raise RuntimeError(f"HTTP request failed with {e.code}: {e.reason}")
+                raise e
             attempt += 1
             if attempt >= HTTP_MAX_RETRIES:
                 raise RuntimeError(f"HTTP request failed after {HTTP_MAX_RETRIES} attempts: {e}")
