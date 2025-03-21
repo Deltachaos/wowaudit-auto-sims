@@ -73,7 +73,7 @@ def http_request(method, url, headers=None, data=None):
                 raise RuntimeError(f"HTTP request failed after {HTTP_MAX_RETRIES} attempts: {e}")
 
         print(f"Retry HTTP request in {HTTP_MAX_RETRIES}")
-        time.sleep(sleep_time)
+        time.sleep(HTTP_RETRY_INTERVAL)
 
 async def async_http_request(method, url, headers=None, data=None):
     """
@@ -147,23 +147,35 @@ def start_browser(url):
     driver.get(url)
     return driver
 
-def get_talent_build_browser(class_name, spec, difficulty = "mythic"):
+def get_talent_build_browser(class_name, spec, difficulty="mythic", max_retries=3, base_sleep=2.0):
     url = f"https://www.archon.gg/wow/builds/{spec}/{class_name}/raid/overview/{difficulty}/all-bosses"
     print(f"Fetch from: {url}")
-    driver = start_browser(url)
-
-    wait = WebDriverWait(driver, 10)
-    elements = wait.until(EC.presence_of_all_elements_located((By.CSS_SELECTOR, "#talents a[href^='https://www.wowhead.com/talent-calc/blizzard/']")))
-
-    found = None
-    for element in elements:
-        link = element.get_attribute("href")
-        match = re.search(r'https://www.wowhead.com/talent-calc/blizzard/(.*)', link)
-        if match:
-            found = match.group(1)
-
-    driver.quit()
-    return found
+    
+    attempt = 0
+    while attempt < HTTP_MAX_RETRIES:
+        try:
+            driver = start_browser(url)
+            wait = WebDriverWait(driver, 10)
+            elements = wait.until(EC.presence_of_all_elements_located((By.CSS_SELECTOR, "#talents a[href^='https://www.wowhead.com/talent-calc/blizzard/']")))
+            
+            found = None
+            for element in elements:
+                link = element.get_attribute("href")
+                match = re.search(r'https://www.wowhead.com/talent-calc/blizzard/(.*)', link)
+                if match:
+                    found = match.group(1)
+            
+            driver.quit()
+            return found
+        except (TimeoutException, WebDriverException) as e:
+            attempt += 1
+            if attempt >= HTTP_MAX_RETRIES:
+                raise RuntimeError(f"Failed to fetch talent build after {HTTP_MAX_RETRIES} attempts: {e}")
+            
+            print(f"Retry {attempt}/{HTTP_MAX_RETRIES} after error: {e}")
+            time.sleep(HTTP_RETRY_INTERVAL * (2 ** (attempt - 1)))
+    
+    return None
 
 # global cache to hold talent builds
 talent_build_cache = {}
