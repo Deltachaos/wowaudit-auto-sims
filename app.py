@@ -162,6 +162,7 @@ def get_talent_build_browser(class_name, spec, difficulty = "mythic"):
 talent_build_cache = {}
 
 def get_talent_build(class_name, spec, difficulty="mythic"):
+    return None
     class_name = re.sub('[^0-9a-z]+', '-', class_name.lower())
     spec = re.sub('[^0-9a-z]+', '-', spec.lower())
     difficulty = re.sub('[^0-9a-z]+', '-', difficulty.lower())
