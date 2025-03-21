@@ -49,11 +49,11 @@ def http_request(method, url, headers=None, data=None):
     """
     Synchronously perform an HTTP request with retries.
     Retries have increasing sleep durations (exponential backoff).
-    """   
+    """
     if data is not None:
         if isinstance(data, str):
             data = data.encode('utf-8')
-    
+
     attempt = 0
     while attempt < HTTP_MAX_RETRIES:
         try:
@@ -163,7 +163,6 @@ def get_talent_build_browser(class_name, spec, difficulty = "mythic"):
 talent_build_cache = {}
 
 def get_talent_build(class_name, spec, difficulty="mythic"):
-    return None
     class_name = re.sub('[^0-9a-z]+', '-', class_name.lower())
     spec = re.sub('[^0-9a-z]+', '-', spec.lower())
     difficulty = re.sub('[^0-9a-z]+', '-', difficulty.lower())
