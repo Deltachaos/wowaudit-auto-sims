@@ -72,12 +72,25 @@ The script also supports the following environment variables, prefixed with `DRO
 
 The stroked settings are currently not implemented, but planned.
 
-- ~~`DROPTIMIZER_X_FIGHT_DURATION`: Fight duration in minutes. Default: `5`.~~
-- ~~`DROPTIMIZER_X_FIGHT_STYLE`: The fight style to simulate (e.g., `Patchwerk`). Default: `Patchwerk`.~~
+- `DROPTIMIZER_X_FIGHT_DURATION`: Fight duration in seconds. Default: `300`.
+- `DROPTIMIZER_X_FIGHT_STYLE`: The fight style to simulate (e.g., `Patchwerk`). Default: `Patchwerk`.
+- - Patchwerk
+- - DungeonSlice,
+- - TargetDummy
+- - ExecutePatchwerk
+- - HecticAndCleave
+- - LightMovement
+- - HeavyMovement
+- - CastingPatchwerk
+- - CleaveAdd
 - `DROPTIMIZER_X_MATCH_EQUIPPED_GEAR`: Whether to match currently equipped gear. Default: `False`.
-- ~~`DROPTIMIZER_X_NUMBER_OF_BOSSES`: Number of bosses in the encounter. Default: `1`.~~
-- ~~`DROPTIMIZER_X_PI`: Whether Power Infusion (PI) is considered. Default: `False`.~~
+- `DROPTIMIZER_X_NUMBER_OF_BOSSES`: Number of bosses in the encounter. Default: `1`.
+- `DROPTIMIZER_X_PI`: Whether Power Infusion (PI) is considered. Default: `False`.
 - ~~`DROPTIMIZER_X_SOCKETS`: Whether to prioritize socketed items. Default: `False`.~~
+- `DROPTIMIZER_TALENTS_CLASS_SPEC`: Overwrite the talent string for specific classes and specs. Default: Current used talents.
+- - `CLASS` is the english class name without spaces uppercase. Example: `DEMONHUNTER`
+- - `SPEC` is the english spec name without spaces uppercase. Example: `HAVOC`
+- - The value is the talent string from wowhead talent calculator: Example: `CEkAAAAAAAAAAAAAAAAAAAAAAYGMzMzYMzMjZmJmZGAAAAAAwsZMbzwMzsNzMbWmlxwMzwYZbWmBDjtNmkhZmBWWA`
 
 #### Upgrade Levels
 
@@ -139,6 +152,7 @@ jobs:
         env:
           WOWAUDIT_API_TOKEN: ${{ secrets.WOWAUDIT_API_TOKEN }}
           UPDATE_INTERVAL_HOURS: ${{ vars.UPDATE_INTERVAL_HOURS }}
+          DROPTIMIZER_0_FIGHT_DURATION: 300 # And other settings like described above 
         run: |
           xvfb-run --auto-servernum python3 app/app.py
 ```

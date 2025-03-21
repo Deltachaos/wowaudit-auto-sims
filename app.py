@@ -38,6 +38,19 @@ USER_AGENT = os.getenv(
 if WOWAUDIT_API_TOKEN is None:
     raise "ERROR: You have not set the WOWAUDIT_API_TOKEN. It is required to run the app. Please read the documentation: https://github.com/Deltachaos/wowaudit-auto-sims?tab=readme-ov-file#getting-a-wow-audit-api-token"
 
+def clear(text):
+    return ''.join(char for char in text if char.isalnum()).lower()
+
+def get_talent_overrides(char_name, realm, class_name, spec_name):
+    class_name = clear(class_name).upper()
+    spec_name = clear(spec_name).upper()
+    print(f"Check for talent overriedes for {char_name}-{realm} {class_name} {spec_name}")
+    override = os.getenv("DROPTIMIZER_TALENTS_" + class_name + "_" + spec_name, None)
+    if override:
+        print(f"Use talents {override}")
+        return override
+    return None
+
 def http_request(method, url, headers=None, data=None):
     """
     Synchronously perform an HTTP request.
@@ -113,10 +126,7 @@ async def get_characters():
         print(f"Error fetching characters: {e}")
         return []
 
-def clear(text):
-    return ''.join(char for char in text if char.isalnum()).lower()
-
-def start_sim_with_browser(region, realm, char_name, raid, difficulty, sim, is_latest):
+def start_sim_with_browser(region, realm, char_name, class_name, raid, difficulty, sim, is_latest):
     """Starts a Raidbots simulation using a headless browser and returns the sim_id."""
     url = f"https://www.raidbots.com/simbot/droptimizer?region={region}&realm={realm}&name={char_name}"
 
@@ -130,6 +140,56 @@ def start_sim_with_browser(region, realm, char_name, raid, difficulty, sim, is_l
     driver = webdriver.Chrome(options=options)
     driver.get(url)
 
+    def redux_dispatch(event):
+        script = """
+        (function (event) {
+            function findStoreInProps(element) {
+                if (!element || typeof element !== 'object') return null;
+                
+                // Check if the element has memoizedProps and a store
+                if (element.memoizedProps && element.memoizedProps.store) {
+                    return element.memoizedProps.store;
+                }
+                
+                // Recursively search children (checking different React structures)
+                if (element.memoizedProps) {
+                    for (const key in element.memoizedProps) {
+                        if (element.memoizedProps.hasOwnProperty(key)) {
+                            const store = findStoreInProps(element.memoizedProps[key]);
+                            if (store) return store;
+                        }
+                    }
+                }
+                
+                // Check React Fiber tree (for modern React versions)
+                if (element.child) {
+                    let child = element.child;
+                    while (child) {
+                        const store = findStoreInProps(child);
+                        if (store) return store;
+                        child = child.sibling;
+                    }
+                }
+                
+                return null;
+            }
+            
+            // Try to find the root React component and search for the store
+            function getReduxStore() {
+                const rootElement = document.querySelector('#app'); // Adjust selector if needed
+                if (!rootElement) return null;
+                
+                const internalInstance = rootElement._reactRootContainer?._internalRoot?.current;
+                if (!internalInstance) return null;
+                
+                return findStoreInProps(internalInstance);
+            }
+            getReduxStore().dispatch(event)
+        })(JSON.parse(arguments[0]));
+        """
+        driver.execute_script(script, json.dumps(event))
+        return True
+
     def click(element):
         driver.execute_script("arguments[0].click();", element)
         return True
@@ -138,12 +198,30 @@ def start_sim_with_browser(region, realm, char_name, raid, difficulty, sim, is_l
         wait = WebDriverWait(driver, 10)
         wait.until(EC.presence_of_all_elements_located((By.XPATH, "//h3[contains(text(), 'Sources')]")))
 
-    def find_item_with_text(selector, text):
+    def get_elements(selector):
         wait = WebDriverWait(driver, 10)
-        elements = wait.until(EC.presence_of_all_elements_located((By.CSS_SELECTOR, selector)))
+        return wait.until(EC.presence_of_all_elements_located((By.CSS_SELECTOR, selector)))
+
+    def get_element(selector):
+        elements = get_elements(selector)
+
+        for element in elements:
+            return element
+        return None
+
+    def find_item_with_text(selector, text):
+        elements = get_elements(selector)
 
         for element in elements:
             if clear(element.text) == clear(text):
+                return element
+        return None
+
+    def find_item_with_text_startswith(selector, text):
+        elements = get_elements(selector)
+
+        for element in elements:
+            if clear(element.text).startswith(clear(text)):
                 return element
         return None
 
@@ -196,7 +274,7 @@ def start_sim_with_browser(region, realm, char_name, raid, difficulty, sim, is_l
 
         if not value in options:
             print(f"No option found for upgrade: {value}")
-        
+
         return click(options[highest_level])
 
     def select_raid(raid_name):
@@ -228,28 +306,96 @@ def start_sim_with_browser(region, realm, char_name, raid, difficulty, sim, is_l
             return click(item)
         return False
 
+    def set_simc(value):
+        return redux_dispatch({
+            "type": "raidbots/simbot/form/input",
+            "payload": {
+                "field": "text",
+                "value": value
+            }
+        })
+
+    def replace_talents_line(text, replacement):
+        pattern = re.compile(r"^talents=(.*)$", re.MULTILINE)
+        return pattern.sub(f"talents={replacement}", text)
+
+    def get_spec_from_simc(text):
+        match = re.search(r'^spec=(.*)$', text, re.MULTILINE)
+        if match:
+            return match.group(1)
+        return None
+
     wait_for_char_loaded()
 
-    print("Show all raids")
-    time.sleep(3)
-    if not set_checkbox("Show Previous Tiers", True):
+    convert_to_simc = find_item_with_text(".Text", "Convert to SimC input")
+    if not (convert_to_simc and click(convert_to_simc)):
+        raise "Could not convert to simc"
+
+    simc_input = get_element("#SimcUserInput-input")
+    if not simc_input:
+        raise "Simc User Input"
+
+    simc_data = simc_input.get_attribute("value")
+
+    spec = get_spec_from_simc(simc_data)
+    if not spec:
+        raise "Could not find spec"
+
+    talents = get_talent_overrides(char_name, realm, class_name, spec)
+    if talents:
+        simc_data = replace_talents_line(simc_data, talents)
+        time.sleep(3)
+        if not set_simc(simc_data):
+            raise "Simc"
+
+    if not redux_dispatch({
+        "type": "raidbots/simbot/toggle_droptimizer_show_previous_tiers",
+        "payload": {}
+    }):
         raise "Could not show all raids"
+    #print("Show all raids")
+    #time.sleep(3)
+    #if not set_checkbox("Show Previous Tiers", True):
+    #    raise "Could not show all raids"
 
     time.sleep(3)
     print("Select raid " + raid["name"])
     if not select_raid(raid["name"]):
         raise "Could not select raid"
 
+    # {
+    #   "type": "raidbots/simbot/choose_droptimizer_difficulty",
+    #   "payload": {
+    #     "instanceId": 1296, # undermine
+    #     "difficulty": "raid-lfr" // raid-heroic, raid-normal, raid-mythic
+    #   }
+    # }
     time.sleep(3)
     print("Select difficulty " + difficulty)
     if not select_difficulty(difficulty):
         raise "Could not select difficulty"
 
+    # {
+    #   "type": "raidbots/simbot/set_droptimizer_upgrade_equipped",
+    #   "payload": {
+    #     "instanceId": 1296, # undermine
+    #     "difficulty": "raid-normal",
+    #     "upgradeEquipped": true # sim["match_equipped_gear"]
+    #   }
+    # }
     print("Set match_equipped_gear to " + str(sim["match_equipped_gear"]))
     time.sleep(3)
     if not set_checkbox("Upgrade All Equipped Gear to the Same Level", sim["match_equipped_gear"]):
         raise "Could not select match_equipped_gear"
 
+    # {
+    #   "type": "raidbots/simbot/choose_droptimizer_upgrade_level",
+    #   "payload": {
+    #     "instanceId": 1296, # undermine
+    #     "difficulty": "raid-normal",
+    #     "upgradeLevel": 11995 # 675 ???
+    #   }
+    # }
     time.sleep(3)
     level = sim["upgrade_level"]
     if not is_latest:
@@ -258,12 +404,51 @@ def start_sim_with_browser(region, realm, char_name, raid, difficulty, sim, is_l
     if not set_item_level(level):
         raise "Could not set item level"
 
-    # TODO fight style, number of bosses, fight length
+    # Alternative event:
+    # {"type": "raidbots/simbot/toggle_advanced_options"}
+    #time.sleep(3)
+    #sim_options = find_item_with_text_startswith(".Box", "Simulation Options")
+    #if not (sim_options and click(sim_options)):
+    #    raise "Simc Options"
+    if not redux_dispatch({"type": "raidbots/simbot/toggle_advanced_options"}):
+        raise "Simc Options"
 
+    # Alternative event:
+    # {"type": "raidbots/simbot/toggle_show_all_options"}
+    #time.sleep(3)
+    #sim_more_options = find_item_with_text_startswith("#AdvancedSimOptions-showAllOptions", "Show More Options")
+    #if not (sim_more_options and click(sim_more_options)):
+    #    raise "Simc more Options"
+    if not redux_dispatch({"type": "raidbots/simbot/toggle_show_all_options"}):
+        raise "Simc Options"
+
+    # Alternative event:
+    # {"type": "raidbots/simbot/toggle_power_infusion"}
+    if sim["pi"]:
+        if not redux_dispatch({"type": "raidbots/simbot/toggle_power_infusion"}):
+            raise "PI"
     #print("Set pi to " + str(sim["pi"]))
     #time.sleep(3)
     #if not set_checkbox("Power Infusion (beta)", sim["pi"]):
     #    raise "Could not select pi"
+
+    if not redux_dispatch({
+        "type": "raidbots/simbot/select_fight_style",
+        "payload": sim["fight_style"]
+    }):
+        raise "Fight style"
+
+    if not redux_dispatch({
+        "type": "raidbots/simbot/select_enemy_count",
+        "payload": sim["number_of_bosses"]
+    }):
+        raise "Fight style"
+
+    if not redux_dispatch({
+        "type": "raidbots/simbot/select_fight_length",
+        "payload": sim["fight_duration"]
+    }):
+        raise "Fight length"
 
     old_url = driver.current_url
 
@@ -399,6 +584,7 @@ async def process_raidbots_character(region, character, latest, raids, sim_map, 
     """
     name = character["name"]
     realm = character["realm"]
+    class_name = character["class"]
     character_name = f"{name}-{realm}"
     print(f"Processing character: {character_name}")
 
@@ -408,14 +594,14 @@ async def process_raidbots_character(region, character, latest, raids, sim_map, 
         if DISABLE_LEGACY_RAIDS and not is_latest:
             print(f"Skip {raid_name} because legacy raids are skipped")
             continue
-        
+
         for difficulty, sims in sim_map.items():
             if character["id"] in latest_updates and raid["id"] in latest_updates[character["id"]] and difficulty in latest_updates[character["id"]][raid["id"]] and is_already_updated(latest_updates[character["id"]][raid["id"]][difficulty]):
                 print(f"Skip {raid_name} {difficulty} because its updated already")
-                continue
+                #continue
 
             for sim in sims:
-                sim_id = start_sim_with_browser(region, realm, name, raid, difficulty, sim, is_latest)
+                sim_id = start_sim_with_browser(region, realm, name, class_name, raid, difficulty, sim, is_latest)
                 if not sim_id:
                     print(f"Sim {raid_name} {difficulty} response for {character_name} missing simId.")
                     continue
@@ -462,7 +648,7 @@ def get_latest_updates(wishlists):
 
 def get_droptimizer_settings(difficulties):
     default_settings = {
-        "fight_duration": 5,
+        "fight_duration": 300,
         "fight_style": "Patchwerk",
         "match_equipped_gear": False,
         "number_of_bosses": 1,
@@ -548,8 +734,6 @@ async def main():
     if not sims:
         print("No sims to process.")
         return
-
-    print(sims)
 
     latest_updates = get_latest_updates(wishlists)
 
