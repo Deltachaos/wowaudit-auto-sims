@@ -50,8 +50,8 @@ def http_request(method, url, headers=None, data=None):
     if data is not None:
         if isinstance(data, str):
             data = data.encode('utf-8')
-    req = urllib.request.Request(url, data=data, headers=headers or {}, method=method, timeout=120)
-    with urllib.request.urlopen(req) as resp:
+    req = urllib.request.Request(url, data=data, headers=headers or {}, method=method)
+    with urllib.request.urlopen(req, timeout=120) as resp:
         resp_data = resp.read().decode('utf-8')
         return json.loads(resp_data)
 
