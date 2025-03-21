@@ -143,6 +143,7 @@ def start_browser(url):
 
 def get_talent_build_browser(class_name, spec, difficulty = "mythic"):
     url = f"https://www.archon.gg/wow/builds/{spec}/{class_name}/raid/overview/{difficulty}/all-bosses"
+    print(f"Fetch from: {url}")
     driver = start_browser(url)
 
     wait = WebDriverWait(driver, 10)
