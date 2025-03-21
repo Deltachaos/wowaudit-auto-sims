@@ -11,6 +11,7 @@ If you find these tools helpful, consider supporting them by subscribing to thei
 ## Features
 - Fetches character and raid information from WoW Audit.
 - Starts Raidbots Droptimizer simulations via a headless browser.
+- Fetches most used raid talent build from [archon.gg](https://www.archon.gg).
 - Polls the simulation job status until completion.
 - Uploads the generated wishlist to WoW Audit.
 - Processes multiple characters asynchronously.
@@ -91,6 +92,12 @@ The stroked settings are currently not implemented, but planned.
 - - `CLASS` is the english class name without spaces uppercase. Example: `DEMONHUNTER`
 - - `SPEC` is the english spec name without spaces uppercase. Example: `HAVOC`
 - - The value is the talent string from wowhead talent calculator: Example: `CEkAAAAAAAAAAAAAAAAAAAAAAYGMzMzYMzMjZmJmZGAAAAAAwsZMbzwMzsNzMbWmlxwMzwYZbWmBDjtNmkhZmBWWA`
+- `DROPTIMIZER_TALENTS_DIFFICULTY_CLASS_SPEC`: Overwrite the talent string for specific classes and specs. Default: Current used talents.
+- - `DIFFICULTY` is the english class name without spaces uppercase. Example: `HEROIC`
+- - `CLASS` is the english class name without spaces uppercase. Example: `DEMONHUNTER`
+- - `SPEC` is the english spec name without spaces uppercase. Example: `HAVOC`
+- - The value is the talent string from wowhead talent calculator: Example: `CEkAAAAAAAAAAAAAAAAAAAAAAYGMzMzYMzMjZmJmZGAAAAAAwsZMbzwMzsNzMbWmlxwMzwYZbWmBDjtNmkhZmBWWA`
+- `DROPTIMIZER_ARCHON_TALENTS`: Use talents from archon if not explicitly set. Default: `True`.
 
 #### Upgrade Levels
 

@@ -34,22 +34,13 @@ USER_AGENT = os.getenv(
     "USER_AGENT",
     "Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/132.0.0.0 Safari/537.36",
 )
+DROPTIMIZER_ARCHON_TALENTS = parse_bool(os.getenv("DROPTIMIZER_ARCHON_TALENTS", 1))
 
 if WOWAUDIT_API_TOKEN is None:
     raise "ERROR: You have not set the WOWAUDIT_API_TOKEN. It is required to run the app. Please read the documentation: https://github.com/Deltachaos/wowaudit-auto-sims?tab=readme-ov-file#getting-a-wow-audit-api-token"
 
 def clear(text):
     return ''.join(char for char in text if char.isalnum()).lower()
-
-def get_talent_overrides(char_name, realm, class_name, spec_name):
-    class_name = clear(class_name).upper()
-    spec_name = clear(spec_name).upper()
-    print(f"Check for talent overriedes for {char_name}-{realm} {class_name} {spec_name}")
-    override = os.getenv("DROPTIMIZER_TALENTS_" + class_name + "_" + spec_name, None)
-    if override:
-        print(f"Use talents {override}")
-        return override
-    return None
 
 def http_request(method, url, headers=None, data=None):
     """
@@ -63,7 +54,6 @@ def http_request(method, url, headers=None, data=None):
     with urllib.request.urlopen(req) as resp:
         resp_data = resp.read().decode('utf-8')
         return json.loads(resp_data)
-
 
 async def async_http_request(method, url, headers=None, data=None):
     """
@@ -126,19 +116,79 @@ async def get_characters():
         print(f"Error fetching characters: {e}")
         return []
 
-def start_sim_with_browser(region, realm, char_name, class_name, raid, difficulty, sim, is_latest):
-    """Starts a Raidbots simulation using a headless browser and returns the sim_id."""
-    url = f"https://www.raidbots.com/simbot/droptimizer?region={region}&realm={realm}&name={char_name}"
-
+def start_browser(url):
     options = Options()
     options.add_argument("--headless")
     options.add_argument("--disable-gpu")
     options.add_argument("--no-sandbox")
     options.add_argument("--disable-dev-shm-usage")
 
-    print(f"Start sim for {region} {char_name}-{realm} for raid {raid} {difficulty} with settings: {sim}")
     driver = webdriver.Chrome(options=options)
     driver.get(url)
+    return driver
+
+def get_talent_build_browser(class_name, spec, difficulty = "mythic"):
+    url = f"https://www.archon.gg/wow/builds/{spec}/{class_name}/raid/overview/{difficulty}/all-bosses"
+    driver = start_browser(url)
+
+    wait = WebDriverWait(driver, 10)
+    elements = wait.until(EC.presence_of_all_elements_located((By.CSS_SELECTOR, "#talents a[href^='https://www.wowhead.com/talent-calc/blizzard/']")))
+
+    found = None
+    for element in elements:
+        link = element.get_attribute("href")
+        match = re.search(r'https://www.wowhead.com/talent-calc/blizzard/(.*)', link)
+        if match:
+            found = match.group(1)
+
+    driver.quit()
+    return found
+
+# global cache to hold talent builds
+talent_build_cache = {}
+
+def get_talent_build(class_name, spec, difficulty="mythic"):
+    class_name = re.sub('[^0-9a-z]+', '-', class_name.lower())
+    spec = re.sub('[^0-9a-z]+', '-', spec.lower())
+    difficulty = re.sub('[^0-9a-z]+', '-', difficulty.lower())
+    if difficulty not in ["normal", "heroic", "mythic"]:
+        difficulty = "normal"
+
+    global talent_build_cache
+    key = (class_name, spec, difficulty)
+    if key not in talent_build_cache:
+        talent_build_cache[key] = get_talent_build_browser(class_name, spec, difficulty)
+    return talent_build_cache[key]
+
+def get_talent_overrides(char_name, realm, class_name, spec_name, difficulty):
+    env_class_name = clear(class_name).upper()
+    env_spec_name = clear(spec_name).upper()
+    env_difficulty = clear(difficulty).upper()
+    print(f"Check for talent overriedes for {char_name}-{realm} {class_name} {spec_name}")
+    override = os.getenv("DROPTIMIZER_TALENTS_" + env_difficulty + "_" + env_class_name + "_" + env_spec_name, None)
+    if override:
+        print(f"Use talents (difficulty {difficulty}): {override}")
+        return override
+
+    override = os.getenv("DROPTIMIZER_TALENTS_" + env_class_name + "_" + env_spec_name, None)
+    if override:
+        print(f"Use talents (all difficulties): {override}")
+        return override
+
+    if DROPTIMIZER_ARCHON_TALENTS:
+        override = get_talent_build(class_name, spec_name, difficulty)
+        if override:
+            print(f"Use talents (archon): {override}")
+            return override
+
+    return None
+
+def start_sim_with_browser(region, realm, char_name, class_name, raid, difficulty, sim, is_latest):
+    """Starts a Raidbots simulation using a headless browser and returns the sim_id."""
+    url = f"https://www.raidbots.com/simbot/droptimizer?region={region}&realm={realm}&name={char_name}"
+
+    print(f"Start sim for {region} {char_name}-{realm} for raid {raid} {difficulty} with settings: {sim}")
+    driver = start_browser(url)
 
     def redux_dispatch(event):
         script = """
@@ -341,7 +391,7 @@ def start_sim_with_browser(region, realm, char_name, class_name, raid, difficult
     if not spec:
         raise "Could not find spec"
 
-    talents = get_talent_overrides(char_name, realm, class_name, spec)
+    talents = get_talent_overrides(char_name, realm, class_name, spec, difficulty)
     if talents:
         simc_data = replace_talents_line(simc_data, talents)
         time.sleep(3)
