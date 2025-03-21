@@ -171,6 +171,20 @@ jobs:
 
 Once configured, GitHub Actions will run the script automatically on every push to `main` and at the scheduled time (`17:45 UTC` daily).
 
+## FAQ
+
+### Why do I get an HTTP 406 error when uploading wishlists to WoW Audit?
+
+This error occurs when the wishlist generated from the simulation does not match the settings configured in WoW Audit. WoW Audit has specific rules that determine which simulations are considered valid. If your simulation settings (e.g., fight duration, fight style, number of bosses, upgrade levels) differ from those allowed by WoW Audit, the upload will be rejected with an HTTP 406 error.
+
+#### Solution:
+1. **Check WoW Audit Rules:** Log into WoW Audit and review the settings configured for wishlist uploads.
+2. **Match Simulation Settings:** Ensure that the settings used in your Raidbots Droptimizer simulations align with the ones configured in WoW Audit.
+3. **Modify Environment Variables:** Update the relevant `DROPTIMIZER_X_*` environment variables in your script configuration to match WoW Audit’s expected settings.
+4. **Re-run the Simulation:** After adjusting the settings, re-run the simulation and attempt the upload again.
+
+By ensuring consistency between your simulation settings and WoW Audit’s requirements, you should be able to successfully upload your wishlists without encountering an HTTP 406 error.
+
 ## License
 This project is licensed under the MIT License. See the [LICENSE](LICENSE) file for details.
 
