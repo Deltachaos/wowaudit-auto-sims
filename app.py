@@ -175,11 +175,11 @@ def get_talent_build(class_name, spec, difficulty="mythic"):
         talent_build_cache[key] = get_talent_build_browser(class_name, spec, difficulty)
     return talent_build_cache[key]
 
-def get_talent_overrides(char_name, realm, class_name, spec_name, difficulty):
+def get_talent_overrides(class_name, spec_name, difficulty):
     env_class_name = clear(class_name).upper()
     env_spec_name = clear(spec_name).upper()
     env_difficulty = clear(difficulty).upper()
-    print(f"Check for talent overriedes for {char_name}-{realm} {class_name} {spec_name}")
+    print(f"Check for talent overriedes for {class_name} {spec_name} on {difficulty}")
     override = os.getenv("DROPTIMIZER_TALENTS_" + env_difficulty + "_" + env_class_name + "_" + env_spec_name, None)
     if override:
         print(f"Use talents (difficulty {difficulty}): {override}")
@@ -406,7 +406,7 @@ def start_sim_with_browser(region, realm, char_name, class_name, raid, difficult
     if not spec:
         raise "Could not find spec"
 
-    talents = get_talent_overrides(char_name, realm, class_name, spec, difficulty)
+    talents = get_talent_overrides(class_name, spec, difficulty)
     if talents:
         simc_data = replace_talents_line(simc_data, talents)
         time.sleep(3)
@@ -774,6 +774,14 @@ def get_sims(difficulties):
     settings = get_droptimizer_settings(difficulties)
     return transform_settings(difficulties, settings)
 
+def get_specs(char_id, wishlists):
+    for character in wishlists["characters"]:
+        if character["id"] == char_id:
+            for instance in character["instances"]:
+                for difficulty in instance["difficulties"]:
+                    return list(difficulty["wishlist"]["updated_at"].keys())
+    return []
+
 async def main():
     """
     Main function: fetch all characters and start processing them concurrently.
@@ -813,6 +821,13 @@ async def main():
     if not latest_raid:
         print("No latest raid found.")
         return
+
+    for character in characters:
+        if character["role"] != "Heal":
+            specs = get_specs(character["id"], wishlists)
+            for spec in specs:
+                for difficulty in difficulties:
+                    get_talent_overrides(character["class"], spec, difficulty)
 
     # Create a task for each character.
     tasks = [asyncio.create_task(process_raidbots_character(region, character, latest_raid, raids, sims, latest_updates)) for character in characters if character["role"] != "Heal"]
