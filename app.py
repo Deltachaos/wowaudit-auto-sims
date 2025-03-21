@@ -30,9 +30,9 @@ WOWAUDIT_API_TOKEN = os.getenv("WOWAUDIT_API_TOKEN", None)
 POLL_INTERVAL = int(os.getenv("POLL_INTERVAL", 30))
 DISABLE_LEGACY_RAIDS = parse_bool(os.getenv("DISABLE_LEGACY_RAIDS", 1))
 UPDATE_INTERVAL_HOURS = timedelta(hours=get_interval("UPDATE_INTERVAL_HOURS", 24))
-HTTP_MAX_RETRIES = timedelta(hours=get_interval("HTTP_MAX_RETRIES", 5))
-HTTP_RETRY_INTERVAL = timedelta(hours=get_interval("HTTP_RETRY_INTERVAL", 1))
-HTTP_TIMEOUT = timedelta(hours=get_interval("HTTP_TIMEOUT", 120))
+HTTP_MAX_RETRIES = os.getenv("HTTP_MAX_RETRIES", 5)
+HTTP_RETRY_INTERVAL = os.getenv("HTTP_RETRY_INTERVAL", 1)
+HTTP_TIMEOUT =os.getenv("HTTP_TIMEOUT", 120)
 USER_AGENT = os.getenv(
     "USER_AGENT",
     "Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/132.0.0.0 Safari/537.36",
