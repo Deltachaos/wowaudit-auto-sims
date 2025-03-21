@@ -61,13 +61,19 @@ def http_request(method, url, headers=None, data=None):
             with urllib.request.urlopen(req, timeout=HTTP_TIMEOUT) as resp:
                 resp_data = resp.read().decode('utf-8')
                 return json.loads(resp_data)
+        except urllib.error.HTTPError as e:
+            if 400 <= e.code < 500:
+                raise RuntimeError(f"HTTP request failed with {e.code}: {e.reason}")
+            attempt += 1
+            if attempt >= HTTP_MAX_RETRIES:
+                raise RuntimeError(f"HTTP request failed after {HTTP_MAX_RETRIES} attempts: {e}")
         except Exception as e:
             attempt += 1
             if attempt >= HTTP_MAX_RETRIES:
                 raise RuntimeError(f"HTTP request failed after {HTTP_MAX_RETRIES} attempts: {e}")
-            sleep_time = HTTP_RETRY_INTERVAL * (2 ** (attempt - 1))  # Exponential backoff
-            print(f"Retry HTTP request in {sleep_time}")
-            time.sleep(sleep_time)
+
+        print(f"Retry HTTP request in {HTTP_MAX_RETRIES}")
+        time.sleep(sleep_time)
 
 async def async_http_request(method, url, headers=None, data=None):
     """
