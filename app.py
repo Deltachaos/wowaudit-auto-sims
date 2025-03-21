@@ -30,6 +30,9 @@ WOWAUDIT_API_TOKEN = os.getenv("WOWAUDIT_API_TOKEN", None)
 POLL_INTERVAL = int(os.getenv("POLL_INTERVAL", 30))
 DISABLE_LEGACY_RAIDS = parse_bool(os.getenv("DISABLE_LEGACY_RAIDS", 1))
 UPDATE_INTERVAL_HOURS = timedelta(hours=get_interval("UPDATE_INTERVAL_HOURS", 24))
+HTTP_MAX_RETRIES = timedelta(hours=get_interval("HTTP_MAX_RETRIES", 5))
+HTTP_RETRY_INTERVAL = timedelta(hours=get_interval("HTTP_RETRY_INTERVAL", 1))
+HTTP_TIMEOUT = timedelta(hours=get_interval("HTTP_TIMEOUT", 120))
 USER_AGENT = os.getenv(
     "USER_AGENT",
     "Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/132.0.0.0 Safari/537.36",
@@ -44,16 +47,27 @@ def clear(text):
 
 def http_request(method, url, headers=None, data=None):
     """
-    Synchronously perform an HTTP request.
-    Data (if provided) should be a string; it is encoded to bytes.
-    """
+    Synchronously perform an HTTP request with retries.
+    Retries have increasing sleep durations (exponential backoff).
+    """   
     if data is not None:
         if isinstance(data, str):
             data = data.encode('utf-8')
-    req = urllib.request.Request(url, data=data, headers=headers or {}, method=method)
-    with urllib.request.urlopen(req, timeout=120) as resp:
-        resp_data = resp.read().decode('utf-8')
-        return json.loads(resp_data)
+    
+    attempt = 0
+    while attempt < HTTP_MAX_RETRIES:
+        try:
+            req = urllib.request.Request(url, data=data, headers=headers or {}, method=method)
+            with urllib.request.urlopen(req, timeout=HTTP_TIMEOUT) as resp:
+                resp_data = resp.read().decode('utf-8')
+                return json.loads(resp_data)
+        except Exception as e:
+            attempt += 1
+            if attempt >= HTTP_MAX_RETRIES:
+                raise RuntimeError(f"HTTP request failed after {HTTP_MAX_RETRIES} attempts: {e}")
+            sleep_time = HTTP_RETRY_INTERVAL * (2 ** (attempt - 1))  # Exponential backoff
+            print(f"Retry HTTP request in {sleep_time}")
+            time.sleep(sleep_time)
 
 async def async_http_request(method, url, headers=None, data=None):
     """
