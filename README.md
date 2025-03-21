@@ -31,6 +31,9 @@ The script supports the following environment variables for configuration:
 - `POLL_INTERVAL`: The interval (in seconds) at which the script polls for simulation completion. Default: `30`.
 - `USER_AGENT`: The user agent string used for web requests. Default: `Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/132.0.0.0 Safari/537.36`.
 - `DISABLE_LEGACY_RAIDS`: Disalbes sim for non recent raids. Default: `1`.
+- `HTTP_MAX_RETRIES`: Amount of retries if a HTTP request fails. Default: `5`.
+- `HTTP_RETRY_INTERVAL`: Seconds to pause before next retry. Default: `1`.
+- `HTTP_TIMEOUT`: HTTP request timeout in seconds. Default: `120`.
 
 ## Getting a WoW Audit API Token
 To use this script, you need to obtain a WoW Audit API token:
