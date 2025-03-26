@@ -38,7 +38,7 @@ USER_AGENT = os.getenv(
     "USER_AGENT",
     "Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/132.0.0.0 Safari/537.36",
 )
-DROPTIMIZER_ARCHON_TALENTS = parse_bool(os.getenv("DROPTIMIZER_ARCHON_TALENTS", 1))
+DROPTIMIZER_ARCHON_TALENTS = parse_bool(os.getenv("DROPTIMIZER_ARCHON_TALENTS", 0))
 
 if WOWAUDIT_API_TOKEN is None:
     raise "ERROR: You have not set the WOWAUDIT_API_TOKEN. It is required to run the app. Please read the documentation: https://github.com/Deltachaos/wowaudit-auto-sims?tab=readme-ov-file#getting-a-wow-audit-api-token"

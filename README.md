@@ -100,7 +100,7 @@ The stroked settings are currently not implemented, but planned.
 - - `CLASS` is the english class name without spaces uppercase. Example: `DEMONHUNTER`
 - - `SPEC` is the english spec name without spaces uppercase. Example: `HAVOC`
 - - The value is the talent string from wowhead talent calculator: Example: `CEkAAAAAAAAAAAAAAAAAAAAAAYGMzMzYMzMjZmJmZGAAAAAAwsZMbzwMzsNzMbWmlxwMzwYZbWmBDjtNmkhZmBWWA`
-- `DROPTIMIZER_ARCHON_TALENTS`: Use talents from archon if not explicitly set. Default: `True`.
+- `DROPTIMIZER_ARCHON_TALENTS`: Use talents from archon if not explicitly set. Default: `False`.
 
 #### Upgrade Levels
 
